@@ -83,7 +83,7 @@ const loginDriver = async (req, res) => {
             return res.status(400).json({ success: false, message: "पासवर्ड गलत है!" });
         }
 
-        const token = jwt.sign({ id: driver._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ id: driver._id }, "NarpatAmbu12345", { expiresIn: '30d' });
 
         res.status(200).json({
             success: true,
