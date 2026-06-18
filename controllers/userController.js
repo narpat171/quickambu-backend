@@ -61,7 +61,7 @@ const loginUser = async (req, res) => {
             return res.status(400).json({ success: false, message: "गलत पासवर्ड!" });
         }
 
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ id: user._id }, "NarpatAmbu12345", { expiresIn: '30d' });
 
         res.status(200).json({
             success: true,
