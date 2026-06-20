@@ -128,13 +128,14 @@ const forgotPassword = async (req, res) => {
 
         // 🚨 नया: GMAIL से ईमेल भेजने की सेटिंग 
        // 🚨 नया: GMAIL से ईमेल भेजने की फिक्स सेटिंग (IPv6 बायपास के साथ)
+        // 🚨 नया: GMAIL से ईमेल भेजने की फिक्स सेटिंग (Port 587 के साथ)
         const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com', // service: 'gmail' की जगह यह सीधा रास्ता
-            port: 465,
-            secure: true, 
+            host: 'smtp.gmail.com',
+            port: 587, // 👈 465 को हटाकर 587 कर दें
+            secure: false, // 👈 587 के साथ इसे false रखना ज़रूरी है
             auth: {
-                user: 'quickambu.churu@gmail.com', // ➔ आपकी जीमेल आईडी
-                pass: process.env.GMAIL_APP_PASSWORD // ➔ .env से आने वाला पासवर्ड
+                user: 'quickambu.churu@gmail.com', 
+                pass: process.env.GMAIL_APP_PASSWORD 
             }
         });
 
