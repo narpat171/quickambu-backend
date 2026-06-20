@@ -9,7 +9,12 @@ const UserSchema = new mongoose.Schema({
   // ➔ 🚨 Naya: User ki photo ka path save karne ke liye
   profilePhoto: { type: String, default: "" }, 
   
-  role: { type: String, default: "user" }
+  role: { type: String, default: "user" },
+
+  // 👇 Forgot Password (Email OTP) ke liye naye fields
+  resetOtp: { type: String, default: null },
+  resetOtpExpire: { type: Date, default: null }
+  
 }, { timestamps: true });
 
 const User = mongoose.model('User', UserSchema);
