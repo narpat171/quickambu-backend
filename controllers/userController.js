@@ -112,7 +112,6 @@ const updateUserProfile = async (req, res) => {
 // ➔ 5. FORGOT PASSWORD (OTP भेजना)
 // ➔ 5. FORGOT PASSWORD (OTP भेजना) - FINAL FIX
 // ➔ 5. FORGOT PASSWORD (OTP भेजना) - 100% GUARANTEED FIX
-const axios = require('axios'); // ➔ सबसे ऊपर यह होना चाहिए
 
 // ➔ 5. FORGOT PASSWORD (सभी नंबर्स पर SMS भेजना)
 const forgotPassword = async (req, res) => {
