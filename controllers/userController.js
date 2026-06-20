@@ -130,16 +130,11 @@ const forgotPassword = async (req, res) => {
         // 🚨 ईमेल भेजने की सेटिंग (यहाँ अपना असली ईमेल और App Password डालें)
        const transporter = nodemailer.createTransport({
     host: 'smtp.gmail.com',
-    port: 587,
-    secure: false,
-    requireTLS: true,
-    family: 4, // 🚨 यह है असली जादू वाली लाइन! (Force IPv4) 🚨
+    port: 465,
+    secure: true, // पोर्ट 465 के लिए इसे true रखना ही पड़ता है
     auth: {
-        user: 'quickambu.churu@gmail.com', // 👉 अपनी ईमेल डालें
-        pass: 'gugzeqabrjwfinij'       // 👉 16-अक्षर का App Password डालें
-    },
-    tls: {
-        rejectUnauthorized: false
+        user: 'quickambu.churu@gmail.com',
+        pass: 'gugzeqabrjwfinij' // (बिना स्पेस के!)
     }
 });
 
