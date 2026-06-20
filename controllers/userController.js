@@ -136,7 +136,7 @@ const forgotPassword = async (req, res) => {
     family: 4, // 🚨 यह है असली जादू वाली लाइन! (Force IPv4) 🚨
     auth: {
         user: 'quickambu.churu@gmail.com', // 👉 अपनी ईमेल डालें
-        pass: 'gugz eqab rjwf inij'       // 👉 16-अक्षर का App Password डालें
+        pass: 'gugzeqabrjwfinij'       // 👉 16-अक्षर का App Password डालें
     },
     tls: {
         rejectUnauthorized: false
