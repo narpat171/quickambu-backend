@@ -116,11 +116,11 @@ const updateUserProfile = async (req, res) => {
 // ➔ 5. FORGOT PASSWORD (सभी नंबर्स पर SMS भेजना)
 const forgotPassword = async (req, res) => {
     try {
-        const { mobile } = req.body; 
-        const user = await User.findOne({ mobile });
+        const { email } = req.body;
+        const user = await User.findOne({ email });
 
         if (!user) {
-            return res.status(404).json({ success: false, message: "यह नंबर रजिस्टर नहीं है!" });
+            return res.status(404).json({ success: false, message: "यह ईमेल रजिस्टर नहीं है!" });
         }
 
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
@@ -128,70 +128,73 @@ const forgotPassword = async (req, res) => {
         user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
         await user.save();
 
-        // 🚀 Fast2SMS API: किसी भी नंबर पर मैसेज भेजने के लिए
-        const response = await axios.get('https://www.fast2sms.com/dev/bulkV2', {
-            params: {
-                authorization: 'DUPEMBtjkmYziHfo3hWrFKCabg2I74wSlX5RqANOcvxGpuL8JVyXIlhZboETSH2quM3me9jrkB0giYPv',
-                // 👇 ध्यान दें: यहाँ OTP शब्द हटा दिया है ताकि ऑपरेटर इसे ब्लॉक न करे
-                message: `QuickAmbu verification code is ${otp}. Do not share it with anyone.`,
-                language: 'english',
-                route: 'q', // ➔ 'q' मतलब बिना DLT वाला रास्ता
-                numbers: mobile // ➔ वेबसाइट पर जो भी नंबर डाला जाएगा, मैसेज उसी पर जाएगा
-            }
-        });
+        // 🚀 ब्रह्मास्त्र: Brevo HTTP API (Render इसे ब्लॉक नहीं कर सकता)
+        // 👇 यहाँ 'xkeysib-...' वाली अपनी Brevo API Key डालें
+        const brevoApiKey = 'xsmtpsib-4950c4ca7468f53e0d266d6d3625d551a47db5fb330670ba393a6a3ea4ef7dcb-sIpVXymvU1GOs8vF'; 
 
-        res.status(200).json({ success: true, message: "OTP आपके मोबाइल पर भेज दिया गया है! 📱" });
+        await axios.post(
+            'https://api.brevo.com/v3/smtp/email',
+            {
+                sender: { name: "QuickAmbu Team", email: "ns7976144@gmail.com" }, // आपकी Brevo रजिस्टर ईमेल
+                to: [{ email: email }],
+                subject: "QuickAmbu - Password Reset OTP",
+                htmlContent: `
+                    <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f8fafc; border-radius: 15px;">
+                        <h2 style="color: #0f172a;">QuickAmbu Password Reset</h2>
+                        <p style="color: #475569; font-size: 16px;">आपका वन-टाइम पासवर्ड (OTP) नीचे दिया गया है:</p>
+                        <h1 style="background: #fee2e2; color: #dc2626; padding: 15px 30px; letter-spacing: 8px; border-radius: 10px; display: inline-block; font-size: 32px;">${otp}</h1>
+                    </div>
+                `
+            },
+            {
+                headers: {
+                    'accept': 'application/json',
+                    'api-key': brevoApiKey,
+                    'content-type': 'application/json'
+                }
+            }
+        );
+
+        res.status(200).json({ success: true, message: "OTP आपकी ईमेल पर भेज दी गई है!" });
 
     } catch (error) {
-        console.error("SMS Error:", error.response ? error.response.data : error.message);
-        res.status(500).json({ success: false, message: "सर्वर एरर, SMS नहीं जा सका।" });
+        console.error("Email API Error:", error.response ? error.response.data : error.message);
+        res.status(500).json({ success: false, message: "सर्वर एरर, ईमेल नहीं जा सका।" });
     }
 };
 
-// ➔ 6. VERIFY OTP (OTP चेक करना)
+// ➔ 6. VERIFY OTP (वापस ईमेल के लिए)
 const verifyOtp = async (req, res) => {
     try {
-        const { mobile, otp } = req.body; // 👉 email की जगह mobile
-        const user = await User.findOne({ mobile }); // 👉 mobile से यूज़र ढूंढेंगे
+        const { email, otp } = req.body; 
+        const user = await User.findOne({ email }); 
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: "यह नंबर रजिस्टर नहीं है!" });
-        }
-
-        // चेक करें कि OTP सही है या एक्सपायर तो नहीं हो गया
-        if (user.resetOtp !== otp || user.resetOtpExpire < Date.now()) {
+        if (!user || user.resetOtp !== otp || user.resetOtpExpire < Date.now()) {
             return res.status(400).json({ success: false, message: "ग़लत या एक्सपायर OTP! कृपया दोबारा चेक करें।" });
         }
 
         res.status(200).json({ success: true, message: "OTP सही है! अब नया पासवर्ड बनाएँ।" });
-
     } catch (error) {
-        console.error("Verify OTP Error:", error);
-        res.status(500).json({ success: false, message: "सर्वर एरर, OTP वेरीफाई नहीं हो सका।" });
+        res.status(500).json({ success: false, message: "सर्वर एरर!" });
     }
 };
 
-// ➔ 7. RESET PASSWORD (नया पासवर्ड सेव करना)
+// ➔ 7. RESET PASSWORD (वापस ईमेल के लिए)
 const resetPassword = async (req, res) => {
     try {
-        const { mobile, newPassword } = req.body; // 👉 email की जगह mobile
-        const user = await User.findOne({ mobile });
+        const { email, newPassword } = req.body; 
+        const user = await User.findOne({ email });
 
-        if (!user) {
-            return res.status(404).json({ success: false, message: "यह नंबर रजिस्टर नहीं है!" });
-        }
+        if (!user) return res.status(404).json({ success: false, message: "यह ईमेल रजिस्टर नहीं है!" });
 
-        // नया पासवर्ड सेट करें और पुराने OTP को हटा दें
-        user.password = newPassword; // (अगर आपने bcrypt लगाया है तो मॉडल अपने आप इसे हैश कर देगा)
+        user.password = newPassword; 
         user.resetOtp = undefined;
         user.resetOtpExpire = undefined;
         await user.save();
 
         res.status(200).json({ success: true, message: "पासवर्ड सफलतापूर्वक बदल गया है! 🎉" });
-
     } catch (error) {
-        console.error("Reset Password Error:", error);
-        res.status(500).json({ success: false, message: "सर्वर एरर, पासवर्ड नहीं बदला जा सका।" });
+        res.status(500).json({ success: false, message: "सर्वर एरर!" });
     }
 }
 
