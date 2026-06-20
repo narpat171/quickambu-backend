@@ -180,20 +180,34 @@ const verifyOtp = async (req, res) => {
 };
 
 // ➔ 7. RESET PASSWORD (वापस ईमेल के लिए)
+// ➔ 7. RESET PASSWORD (✅ 100% FIX: Double Hashing Bypass)
 const resetPassword = async (req, res) => {
     try {
         const { email, newPassword } = req.body; 
+        
+        // 1. पहले चेक करें कि यूज़र है या नहीं
         const user = await User.findOne({ email });
-
         if (!user) return res.status(404).json({ success: false, message: "यह ईमेल रजिस्टर नहीं है!" });
 
-        user.password = newPassword; 
-        user.resetOtp = undefined;
-        user.resetOtpExpire = undefined;
-        await user.save();
+        // 2. नए पासवर्ड को हैश (Secure) करें
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt); 
+        
+        // 3. 🚀 डेटाबेस में सीधा अपडेट करें (save() की गड़बड़ से बचने के लिए)
+        await User.updateOne(
+            { email: email }, 
+            { 
+                $set: { 
+                    password: hashedPassword, 
+                    resetOtp: undefined, 
+                    resetOtpExpire: undefined 
+                } 
+            }
+        );
 
         res.status(200).json({ success: true, message: "पासवर्ड सफलतापूर्वक बदल गया है! 🎉" });
     } catch (error) {
+        console.error("Reset Password Error:", error);
         res.status(500).json({ success: false, message: "सर्वर एरर!" });
     }
 }
