@@ -128,13 +128,20 @@ const forgotPassword = async (req, res) => {
         await user.save();
 
         // 🚨 ईमेल भेजने की सेटिंग (यहाँ अपना असली ईमेल और App Password डालें)
-        const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            auth: {
-                user: 'quickambu.churu@gmail.com', // 👉 अपनी असली जीमेल डालें (जैसे: narpat@gmail.com)
-                pass: 'gugz eqab rjwf inij' // 👉 वो 16 अक्षर का App Password यहाँ डालें (बिना स्पेस के)
-            }
-        });
+       const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 587,
+    secure: false,
+    requireTLS: true,
+    family: 4, // 🚨 यह है असली जादू वाली लाइन! (Force IPv4) 🚨
+    auth: {
+        user: 'quickambu.churu@gmail.com', // 👉 अपनी ईमेल डालें
+        pass: 'gugz eqab rjwf inij'       // 👉 16-अक्षर का App Password डालें
+    },
+    tls: {
+        rejectUnauthorized: false
+    }
+});
 
         const mailOptions = {
             from: 'QuickAmbu Team <YOUR_EMAIL@gmail.com>',
