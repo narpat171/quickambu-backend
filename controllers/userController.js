@@ -109,6 +109,7 @@ const updateUserProfile = async (req, res) => {
 // =========================================================
 
 // ➔ 5. FORGOT PASSWORD (OTP भेजना)
+// ➔ 5. FORGOT PASSWORD (OTP भेजना) - FINAL FIX
 const forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
@@ -118,25 +119,25 @@ const forgotPassword = async (req, res) => {
             return res.status(404).json({ success: false, message: "यह ईमेल रजिस्टर नहीं है!" });
         }
 
-        // 4 नंबर का असली रैंडम OTP बनाएँ
+        // 4 नंबर का OTP
         const otp = Math.floor(1000 + Math.random() * 9000).toString();
-
-        // OTP को डेटाबेस में सेव करें (10 मिनट की वैलिडिटी के साथ)
         user.resetOtp = otp;
-        user.resetOtpExpire = Date.now() + 10 * 60 * 1000; // 10 mins
+        user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
         await user.save();
 
-        // 🚨 नया: GMAIL से ईमेल भेजने की सेटिंग 
-       // 🚨 नया: GMAIL से ईमेल भेजने की फिक्स सेटिंग (IPv6 बायपास के साथ)
-        // 🚨 नया: GMAIL से ईमेल भेजने की फिक्स सेटिंग (Port 587 के साथ)
+        // 🚨 FINAL FIX: IPv6 Bypass (family: 4) aur TLS fix
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 587, // 👈 465 को हटाकर 587 कर दें
-            secure: false, // 👈 587 के साथ इसे false रखना ज़रूरी है
+            port: 465,
+            secure: true,
             auth: {
-                user: 'quickambu.churu@gmail.com', 
-                pass: process.env.GMAIL_APP_PASSWORD 
-            }
+                user: 'quickambu.churu@gmail.com',
+                pass: process.env.GMAIL_APP_PASSWORD
+            },
+            tls: {
+                rejectUnauthorized: false // ➔ Render ke security block ko todne ke liye
+            },
+            family: 4 // ➔ YAHI VO JADUI CODE HAI JO IPv6 ERROR KO KHATAM KAREGA (Forces IPv4)
         });
 
         const mailOptions = {
