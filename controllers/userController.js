@@ -130,7 +130,7 @@ const forgotPassword = async (req, res) => {
 
         // 🚀 ब्रह्मास्त्र: Brevo HTTP API (Render इसे ब्लॉक नहीं कर सकता)
         // 👇 यहाँ 'xkeysib-...' वाली अपनी Brevo API Key डालें
-        const brevoApiKey = 'xsmtpsib-4950c4ca7468f53e0d266d6d3625d551a47db5fb330670ba393a6a3ea4ef7dcb-sIpVXymvU1GOs8vF'; 
+        const brevoApiKey = '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'; 
 
         await axios.post(
             'https://api.brevo.com/v3/smtp/email',
