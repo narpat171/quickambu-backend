@@ -4,7 +4,16 @@ const multer = require('multer');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 
-const { registerUser, loginUser, getUserProfile, updateUserProfile } = require('../controllers/userController');
+// ➔ 👉 1. Naye OTP wale functions ko yahan import kiya gaya hai
+const { 
+    registerUser, 
+    loginUser, 
+    getUserProfile, 
+    updateUserProfile,
+    forgotPassword, // ➔ Naya
+    verifyOtp,      // ➔ Naya
+    resetPassword   // ➔ Naya
+} = require('../controllers/userController');
 
 // Multer Storage
 const storage = multer.diskStorage({
@@ -29,10 +38,15 @@ const protect = async (req, res, next) => {
     if (!token) return res.status(401).json({ success: false, message: "बिना चाबी के एंट्री मना है!" });
 };
 
-// राउट्स
+// पुराने राउट्स
 router.post('/register', upload.single('profilePhoto'), registerUser);
 router.post('/login', loginUser);
-router.get('/profile', protect, getUserProfile); // ➔ नया रास्ता
-router.put('/profile', protect, updateUserProfile); // ➔ नया रास्ता
+router.get('/profile', protect, getUserProfile); 
+router.put('/profile', protect, updateUserProfile); 
+
+// ➔ 👉 2. FORGOT PASSWORD wale 3 naye raaste (Inme protect middleware nahi lagega)
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-otp', verifyOtp);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;
