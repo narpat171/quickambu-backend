@@ -129,17 +129,17 @@ const forgotPassword = async (req, res) => {
 
         // 🚨 ईमेल भेजने की सेटिंग (यहाँ अपना असली ईमेल और App Password डालें)
        const transporter = nodemailer.createTransport({
-    host: 'smtp.gmail.com',
-    port: 465,
-    secure: true, // पोर्ट 465 के लिए इसे true रखना ही पड़ता है
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false, // पोर्ट 465 के लिए इसे true रखना ही पड़ता है
     auth: {
-        user: 'quickambu.churu@gmail.com',
-        pass: 'gugzeqabrjwfinij' // (बिना स्पेस के!)
+        user: 'af6263001@smtp-brevo.com',
+        pass: process.env.BREVO_SMTP_KEY // (बिना स्पेस के!)
     }
 });
 
         const mailOptions = {
-            from: 'QuickAmbu Team <YOUR_EMAIL@gmail.com>',
+            from: 'QuickAmbu Team <ns7976144@gmail.com>',
             to: email,
             subject: 'QuickAmbu - Password Reset OTP',
             html: `
