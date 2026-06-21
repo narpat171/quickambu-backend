@@ -98,7 +98,7 @@ const forgotPassword = async (req, res) => {
 
         // 🚀 Render से Google को रिक्वेस्ट भेजना
         // 👇 यहाँ अपना वह लंबा सा Google Script का लिंक डालें
-        const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbyD1LG0YYyfo6f_uw-x7fDPKdSWKcVaiSCdsFT1qA4AX0gsWOZpR5XqNADWwrjz-xAV-w/exec'; 
+        const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbxQnCpTBvQjV7gLtNZoWisflySy9GBicCA2pGCD8AyU5uxC1GCwvPbj1mTdtPtYSjqRaw/exec'; 
 
         await axios.post(googleScriptUrl, { email: email, otp: otp });
 
