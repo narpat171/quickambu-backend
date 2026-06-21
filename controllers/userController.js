@@ -1,13 +1,7 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
-
-// 🚀 ब्रह्मास्त्र: Node.js को जबरदस्ती IPv4 इस्तेमाल करने के लिए बोलना (ENETUNREACH एरर का परमानेंट इलाज)
-const dns = require('dns');
-if (dns.setDefaultResultOrder) {
-    dns.setDefaultResultOrder('ipv4first');
-}
+const axios = require('axios'); // 👉 Nodemailer हटाकर axios लगा दिया
 
 // ➔ 1. REGISTER USER
 const registerUser = async (req, res) => {
@@ -86,7 +80,7 @@ const updateUserProfile = async (req, res) => {
 };
 
 // =========================================================
-// 🚀 FORGOT PASSWORD (GMAIL APP PASSWORD - 100% INBOX)
+// 🚀 FORGOT PASSWORD (GOOGLE SCRIPT API - 100% INBOX & BELL)
 // =========================================================
 
 // ➔ 5. FORGOT PASSWORD (OTP भेजना)
@@ -102,35 +96,16 @@ const forgotPassword = async (req, res) => {
         user.resetOtpExpire = Date.now() + 10 * 60 * 1000;
         await user.save();
 
-        // 🚀 Google SMTP Setup
-        const transporter = nodemailer.createTransport({
-            host: 'smtp.gmail.com',
-            port: 465, 
-            secure: true, 
-            auth: {
-                user: 'ns7976144@gmail.com', 
-                pass: 'khhnftnmxpusyrnn' // 👈 अपना 16 डिजिट पासवर्ड यहाँ दोबारा डाल दें (बिना स्पेस)
-            }
-        });
+        // 🚀 Render से Google को रिक्वेस्ट भेजना
+        // 👇 यहाँ अपना वह लंबा सा Google Script का लिंक डालें
+        const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbyD1LG0YYyfo6f_uw-x7fDPKdSWKcVaiSCdsFT1qA4AX0gsWOZpR5XqNADWwrjz-xAV-w/exec'; 
 
-        const mailOptions = {
-            from: '"QuickAmbu Team" <ns7976144@gmail.com>',
-            to: email,
-            subject: "QuickAmbu - Password Reset OTP",
-            html: `
-                <div style="font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f8fafc; border-radius: 15px;">
-                    <h2 style="color: #0f172a;">QuickAmbu Password Reset</h2>
-                    <p style="color: #475569; font-size: 16px;">आपका वन-टाइम पासवर्ड (OTP) नीचे दिया गया है:</p>
-                    <h1 style="background: #fee2e2; color: #dc2626; padding: 15px 30px; letter-spacing: 8px; border-radius: 10px; display: inline-block; font-size: 32px;">${otp}</h1>
-                </div>
-            `
-        };
+        await axios.post(googleScriptUrl, { email: email, otp: otp });
 
-        await transporter.sendMail(mailOptions);
         res.status(200).json({ success: true, message: "OTP आपकी ईमेल पर भेज दी गई है!" });
 
     } catch (error) {
-        console.error("Email Sending Error:", error);
+        console.error("OTP API Error:", error);
         res.status(500).json({ success: false, message: "सर्वर एरर, ईमेल नहीं जा सका।" });
     }
 };
