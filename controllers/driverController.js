@@ -1,6 +1,7 @@
 const Driver = require('../models/driverModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const axios = require('axios'); // 👉 Google Script (Email) के लिए axios जोड़ा गया
 
 // ➔ 1. REGISTER DRIVER (नया ड्राइवर रजिस्टर करना)
 const registerDriver = async (req, res) => {
@@ -122,13 +123,13 @@ const updateDriverProfile = async (req, res) => {
 
         // डेटाबेस में ड्राइवर को ढूंढें और उसका डेटा अपडेट करें
         const updatedDriver = await Driver.findByIdAndUpdate(
-            req.driverId, // यह ID हमें सिक्योरिटी गार्ड (protect middleware) से मिलेगी
+            req.driverId, 
             {
                 name, whatsapp, email, city, address, licenceNo, rcNo, plateNo,
-                ambulanceNumber: plateNo // प्लेट नंबर बदलते ही एम्बुलेंस नंबर भी बदल जाएगा
+                ambulanceNumber: plateNo 
             },
-            { new: true } // इससे हमें अपडेटेड डेटा वापस मिलेगा
-        ).select('-password'); // पासवर्ड को छोड़कर बाकी सब लाओ
+            { new: true } 
+        ).select('-password'); 
 
         if (!updatedDriver) {
             return res.status(404).json({ success: false, message: "ड्राइवर नहीं मिला!" });
@@ -149,7 +150,6 @@ const updateDriverProfile = async (req, res) => {
 // ➔ 5. GET ALL DRIVERS (डेटाबेस से सारे ड्राइवर्स को खींचकर लाना - ADMIN के लिए)
 const getAllDrivers = async (req, res) => {
     try {
-        // Driver मॉडल का इस्तेमाल करके सारे ड्राइवर्स लायेंगे (पासवर्ड छुपा कर)
         const allDrivers = await Driver.find({}).select("-password");
         
         if (!allDrivers || allDrivers.length === 0) {
@@ -167,11 +167,89 @@ const getAllDrivers = async (req, res) => {
     }
 };
 
-// 👇 सिर्फ एक ही बार export करना है (सब कुछ सही से डाल दिया है)
+// =========================================================
+// 🚀 DRIVER FORGOT PASSWORD (GOOGLE SCRIPT API)
+// =========================================================
+
+// ➔ 6. FORGOT PASSWORD (OTP भेजना)
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const driver = await Driver.findOne({ email });
+
+        if (!driver) return res.status(404).json({ success: false, message: "यह ड्राइवर ईमेल रजिस्टर नहीं है!" });
+
+        const otp = Math.floor(1000 + Math.random() * 9000).toString();
+        driver.resetOtp = otp;
+        driver.resetOtpExpire = Date.now() + 10 * 60 * 1000;
+        await driver.save();
+
+        // 👇 यहाँ अपना Google Script वाला लिंक डालें
+        const googleScriptUrl = 'https://script.google.com/macros/s/AKfycbxQnCpTBvQjV7gLtNZoWisflySy9GBicCA2pGCD8AyU5uxC1GCwvPbj1mTdtPtYSjqRaw/exec'; 
+
+        await axios.post(googleScriptUrl, { email: email, otp: otp });
+
+        res.status(200).json({ success: true, message: "OTP ड्राइवर की ईमेल पर भेज दी गई है!" });
+
+    } catch (error) {
+        console.error("Driver OTP API Error:", error);
+        res.status(500).json({ success: false, message: "सर्वर एरर, ईमेल नहीं जा सका।" });
+    }
+};
+
+// ➔ 7. VERIFY OTP (Driver)
+const verifyOtp = async (req, res) => {
+    try {
+        const { email, otp } = req.body; 
+        const driver = await Driver.findOne({ email }); 
+
+        if (!driver || driver.resetOtp !== otp || driver.resetOtpExpire < Date.now()) {
+            return res.status(400).json({ success: false, message: "ग़लत या एक्सपायर OTP! कृपया दोबारा चेक करें।" });
+        }
+
+        res.status(200).json({ success: true, message: "OTP सही है! अब नया पासवर्ड बनाएँ।" });
+    } catch (error) {
+        res.status(500).json({ success: false, message: "सर्वर एरर!" });
+    }
+};
+
+// ➔ 8. RESET PASSWORD (Driver)
+const resetPassword = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body; 
+        
+        const driver = await Driver.findOne({ email });
+        if (!driver) return res.status(404).json({ success: false, message: "यह ड्राइवर ईमेल रजिस्टर नहीं है!" });
+
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt); 
+        
+        await Driver.updateOne(
+            { email: email }, 
+            { 
+                $set: { 
+                    password: hashedPassword, 
+                    resetOtp: undefined, 
+                    resetOtpExpire: undefined 
+                } 
+            }
+        );
+
+        res.status(200).json({ success: true, message: "ड्राइवर का पासवर्ड सफलतापूर्वक बदल गया है! 🎉" });
+    } catch (error) {
+        console.error("Driver Reset Password Error:", error);
+        res.status(500).json({ success: false, message: "सर्वर एरर!" });
+    }
+}
+
+// 👇 सारे फंक्शन्स को एक साथ एक्सपोर्ट कर रहे हैं
 module.exports = { 
     registerDriver, 
     loginDriver, 
     getDriverProfile, 
     updateDriverProfile, 
-    getAllDrivers 
+    getAllDrivers,
+    forgotPassword,
+    verifyOtp,
+    resetPassword
 };
