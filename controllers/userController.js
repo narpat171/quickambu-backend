@@ -1,7 +1,13 @@
 const User = require('../models/userModel');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer'); // 👉 वापस Nodemailer ले आए
+const nodemailer = require('nodemailer');
+
+// 🚀 ब्रह्मास्त्र: Node.js को जबरदस्ती IPv4 इस्तेमाल करने के लिए बोलना (ENETUNREACH एरर का परमानेंट इलाज)
+const dns = require('dns');
+if (dns.setDefaultResultOrder) {
+    dns.setDefaultResultOrder('ipv4first');
+}
 
 // ➔ 1. REGISTER USER
 const registerUser = async (req, res) => {
@@ -99,11 +105,11 @@ const forgotPassword = async (req, res) => {
         // 🚀 Google SMTP Setup
         const transporter = nodemailer.createTransport({
             host: 'smtp.gmail.com',
-            port: 465, // सिक्योर पोर्ट जो ब्लॉक नहीं होता
+            port: 465, 
             secure: true, 
             auth: {
-                user: 'ns7976144@gmail.com', // आपकी ईमेल
-                pass: 'khhnftnmxpusyrnn' // 👈 अपना 16 डिजिट पासवर्ड यहाँ डालें (बिना स्पेस)
+                user: 'ns7976144@gmail.com', 
+                pass: 'khhnftnmxpusyrnn' // 👈 अपना 16 डिजिट पासवर्ड यहाँ दोबारा डाल दें (बिना स्पेस)
             }
         });
 
@@ -129,7 +135,7 @@ const forgotPassword = async (req, res) => {
     }
 };
 
-// ➔ 6. VERIFY OTP 
+// ➔ 6. VERIFY OTP
 const verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body; 
@@ -145,7 +151,7 @@ const verifyOtp = async (req, res) => {
     }
 };
 
-// ➔ 7. RESET PASSWORD (✅ 100% FIX: Double Hashing Bypass)
+// ➔ 7. RESET PASSWORD 
 const resetPassword = async (req, res) => {
     try {
         const { email, newPassword } = req.body; 
