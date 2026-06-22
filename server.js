@@ -10,8 +10,16 @@ const { Server } = require("socket.io");
 const app = express();
 const server = http.createServer(app); 
 
-// 🚀 1. CORS ओपन कर दिया ताकि Vercel (Frontend) से रिक्वेस्ट आ सके
-app.use(cors({ origin: "*" }));
+// 🚀 1. CORS फिक्स: Vercel और Localhost को सटीक परमिशन दे दी (origin "*" को हटाकर)
+app.use(cors({
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:3000', 
+        'https://quickambu-frontend1.vercel.app'
+    ],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 app.use(express.json()); 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads'))); 
 
@@ -27,11 +35,16 @@ const userRoutes = require('./routes/userRoutes');
 app.use('/api/driver', driverRoutes); 
 app.use('/api/user', userRoutes);    
 
-// 🚀 2. Socket.io Configuration (origin "*" कर दिया है)
+// 🚀 2. Socket.io Configuration (यहाँ भी CORS फिक्स कर दिया है)
 const io = new Server(server, {
   cors: {
-    origin: "*", 
-    methods: ["GET", "POST"]
+    origin: [
+        'http://localhost:5173', 
+        'http://localhost:3000', 
+        'https://quickambu-frontend1.vercel.app'
+    ],
+    methods: ["GET", "POST"],
+    credentials: true
   }
 });
 
