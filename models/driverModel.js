@@ -15,6 +15,10 @@ const DriverSchema = new mongoose.Schema({
   rcNo: { type: String, required: true },
   facilities: [String], 
   
+  // 👇 🔥 ये रहीं वो 2 नई लाइनें जो OTP को डेटाबेस में सेव करेंगी
+  resetOtp: { type: String },
+  resetOtpExpire: { type: Date },
+  
   // ➔ 🚨 फिक्स: तीनों फोटो को 'photos' के डब्बे में पैक कर दिया 🚨
   photos: {
     ownerPhoto: { type: String, default: "" },
