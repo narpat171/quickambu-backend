@@ -198,12 +198,16 @@ const forgotPassword = async (req, res) => {
 };
 
 // ➔ 7. VERIFY OTP (Driver)
+// ➔ 7. VERIFY OTP (Driver) - (स्पेस फिक्स के साथ)
 const verifyOtp = async (req, res) => {
     try {
         const { email, otp } = req.body; 
         const driver = await Driver.findOne({ email }); 
 
-        if (!driver || driver.resetOtp !== otp || driver.resetOtpExpire < Date.now()) {
+        // 👇 स्पेस की गड़बड़ी रोकने के लिए (trim)
+        const cleanOtp = String(otp).trim();
+
+        if (!driver || driver.resetOtp !== cleanOtp || driver.resetOtpExpire < Date.now()) {
             return res.status(400).json({ success: false, message: "ग़लत या एक्सपायर OTP! कृपया दोबारा चेक करें।" });
         }
 
