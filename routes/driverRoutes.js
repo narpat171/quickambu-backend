@@ -4,13 +4,16 @@ const multer = require('multer');
 const path = require('path');
 const jwt = require('jsonwebtoken');
 
-// ➔ कंट्रोलर्स का सही इम्पोर्ट (यहाँ मैंने 'getAllDrivers' जोड़ दिया है)
+// ➔ कंट्रोलर्स का सही इम्पोर्ट (यहाँ मैंने फ़ॉरगॉट पासवर्ड वाले फ़ंक्शन्स भी जोड़ दिए हैं)
 const { 
     registerDriver, 
     loginDriver, 
     getDriverProfile, 
     updateDriverProfile,
-    getAllDrivers 
+    getAllDrivers,
+    forgotPassword,    // 👈 नया
+    verifyOtp,         // 👈 नया
+    resetPassword      // 👈 नया
 } = require('../controllers/driverController');
 
 // Multer Setup
@@ -48,7 +51,14 @@ router.post('/login', loginDriver);
 router.get('/profile', protect, getDriverProfile);
 router.put('/profile', protect, updateDriverProfile);
 
-// 👇 🔥 1. ये रही आपकी नई API जो सारे ड्राइवर्स को लाएगी
+// 👇 🔥 ये रही आपकी API जो सारे ड्राइवर्स को लाएगी
 router.get('/all', getAllDrivers);
+
+// ==========================================
+// 🚀 FORGOT PASSWORD (नये Routes)
+// ==========================================
+router.post('/forgot-password', forgotPassword);
+router.post('/verify-otp', verifyOtp);
+router.post('/reset-password', resetPassword);
 
 module.exports = router;
